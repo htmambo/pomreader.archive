@@ -17,6 +17,13 @@
   - 用户数据（PouchDB IndexedDB、阅读进度）已验证自动迁移；旧数据备份于 `~/.config/pom-reader-desktop.bak-e9.1.1-20260924`
   - 分发只保留 pacman 包（仅 Manjaro 使用）；tar.gz 脚本保留备用
   - 兼容补丁 ④：`index.js` 加 `app.setDesktopName('pomreader')`——Electron 44 默认原生 Wayland，KDE 用窗口 app_id 匹配 .desktop 文件取图标和名称；原 app_id 是包名 `pom-reader-desktop`，匹配不到 `pomreader.desktop`，导致任务栏显示 Wayland 通用黄 W 图标、Alt-Tab 显示 "electron"
+  - 兼容补丁 ⑤：`index.js` 加 `app.requestSingleInstanceLock()`——dev 版与 pacman 安装版共享 `~/.config/pom-reader-desktop`，双实例会争用 IndexedDB leveldb 锁：后启动的实例写入全部失败（症状：导入解析正常但弹窗不关闭），且并发写覆盖导致丢书（本次事故丢了《赘婿》《诛仙》）
+
+## 已知事故与数据说明（2026-09-24）
+
+- 双实例争用导致《赘婿》《诛仙》从书架丢失；升级前完整备份在 `~/.config/pom-reader-desktop.bak-e9.1.1-20260924/`
+- 恢复选项：整目录还原备份（会丢升级后新增的书和进度），或用万能搜索重新导入丢失的书
+- 排查方法备忘：`WAYLAND_DEBUG=1 <启动命令> 2>&1 | grep set_app_id` 查 Wayland app_id；IndexedDB 锁冲突在 `--enable-logging` 日志里表现为 `Failed to open LevelDB database ... LOCK`
 - ✅ 系统库全套：gtk3 / nss / alsa-lib / libxss / libxtst / xdg-utils / at-spi2-core / libsecret / libnotify
 - ✅ 图标提取（icns2png → 6 档 PNG）+ `icon.png` + `白虎阅读.desktop`
 - ✅ 自定义 CSS/JS 注入：`customizations/page-flip.{css,js}`（3D 翻书动画，仅章节切换触发）
