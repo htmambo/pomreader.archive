@@ -1,0 +1,14 @@
+{
+  "name": "pom-reader-desktop",
+  "version": "1.0.6",
+  "description": "Professional text reader.",
+  "main": "index.js",
+  "author": {
+    "name": "whitepom",
+    "email": "wse.pom@gmail.com"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "universal-analytics": "^0.4.20"
+  }
+}

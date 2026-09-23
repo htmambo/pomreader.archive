@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=白虎阅读
+Name[en]=Pom Reader
+GenericName=Text Reader
+Comment=Professional text reader (白虎阅读 1.0.6 repackaged from macOS DMG)
+Exec=/home/hoping/htdocs/pomreader/electron-linux/白虎阅读.sh %u
+Icon=/home/hoping/htdocs/pomreader/electron-linux/icon.png
+Terminal=false
+Categories=Office;Reader;Utility;
+StartupWMClass=pomreader
+StartupNotify=true

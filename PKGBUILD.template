@@ -1,0 +1,89 @@
+# Maintainer: hoping <hoping@example.test>
+# 由 pack-pacman.sh 通过占位符替换生成,不要直接编辑
+
+pkgname=@PKG_NAME@
+_pkgname='@APP_NAME@'
+pkgver=@VERSION@
+pkgrel=@PKGREL@
+pkgdesc='@APP_NAME@ (Pom Reader) - professional text reader repackaged from macOS DMG'
+arch=('@ARCH@')
+url='https://example.test/pomreader'
+license=('custom:proprietary')
+depends=(
+    'gtk3' 'nss' 'alsa-lib' 'libxss' 'libxtst'
+    'xdg-utils' 'at-spi2-core' 'libsecret' 'libnotify'
+    'appmenu-gtk-module'
+)
+# 注:应用自带 Electron 9 二进制(/opt/pomreader/electron),无需系统 electron 包
+optdepends=(
+    'noto-fonts-cjk: better CJK rendering'
+    'wqy-zenhei: fallback CJK font'
+)
+provides=('@PKG_NAME@')
+conflicts=('@PKG_NAME@')
+source=('electron-linux.tar.gz')
+sha256sums=('@SOURCE_SHA@')
+options=('!strip' '!debug')
+
+package() {
+    cd "$srcdir/electron-linux"
+
+    # 应用本体 → /opt/pomreader/
+    install -dm755 "$pkgdir/opt/pomreader"
+    cp -ra . "$pkgdir/opt/pomreader/"
+
+    # 移除原 macOS 风格的启动脚本(它用 $DIR/electron 找同目录 electron,不适合装到 /usr/bin)
+    rm -f "$pkgdir/opt/pomreader/$_pkgname.sh"
+
+    # 写一个独立的 /usr/bin/pomreader,硬编码指向 /opt/pomreader/electron
+    # 这是移植后唯一对外的入口,与 /opt/pomreader/白虎阅读.sh 完全无关
+    install -Dm755 /dev/null "$pkgdir/usr/bin/pomreader"
+    cat > "$pkgdir/usr/bin/pomreader" <<'LAUNCHER'
+#!/usr/bin/env bash
+# 白虎阅读 (Pom Reader) - 系统级启动脚本
+# electron 路径硬编码到 /opt/pomreader,不依赖调用方 cwd 或 PATH
+# --class=pomreader: 设置 X11 WM_CLASS,让 KDE 匹配 .desktop 的 StartupWMClass=pomreader
+#                    (否则 dock/Alt-Tab 会找不到图标,显示通用占位符)
+# --name=白虎阅读:  设置 Electron app name,覆盖默认 "electron",让 KDE 窗口预览显示正确标题
+set -e
+exec /opt/pomreader/electron \
+    --no-sandbox \
+    --disable-gpu \
+    --class=pomreader \
+    --name=白虎阅读 \
+    "$@"
+LAUNCHER
+    chmod 755 "$pkgdir/usr/bin/pomreader"
+
+    # Desktop 文件(应用菜单)→ /usr/share/applications/
+    # 注意:文件名必须用 ASCII(pomreader.desktop),不能用 $_pkgname(白虎阅读.desktop)
+    # KDE Plasma 在中文文件名的 .desktop 上有 menu index 兼容性问题,会从分类视图过滤掉
+    install -Dm644 "$_pkgname.desktop" \
+        "$pkgdir/usr/share/applications/pomreader.desktop"
+
+    # 图标(各尺寸)→ /usr/share/icons/hicolor/
+    # 注意:必须用 ${_pkgname}_ 而非 $_pkgname_,否则 bash 把 _pkgname_ 当成变量名
+    for size in 16 32 128 256 512 1024; do
+        local src="${_pkgname}_${size}x${size}x32.png"
+        if [ -f "$src" ]; then
+            install -Dm644 "$src" \
+                "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/pomreader.png"
+        else
+            echo "    警告:跳过缺失的图标文件: $src"
+        fi
+    done
+
+    # 修正 .desktop 中的硬编码路径与图标引用
+    sed -i \
+        -e "s|^Exec=.*|Exec=/usr/bin/pomreader %u|" \
+        -e "s|^Icon=.*|Icon=pomreader|" \
+        -e "s|^Categories=.*|Categories=Office;X-Reader;|" \
+        "$pkgdir/usr/share/applications/pomreader.desktop"
+
+    # 修正 desktop 文件 StartupWMClass(可选)
+    sed -i 's|^StartupWMClass=.*|StartupWMClass=pomreader|' \
+        "$pkgdir/usr/share/applications/pomreader.desktop" || true
+
+    # LICENSE
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/pomreader/LICENSE" 2>/dev/null || true
+}

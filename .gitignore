@@ -1,0 +1,73 @@
+# =============================================================
+# Pom Reader Linux 重打包 — .gitignore
+# 仅保留：源代码 / 修补后的 asar 工作区 / 打包脚本 / 启动器 / 图标 / 文档
+# 排除：DMG 原始包 / 解包中间产物 / Electron 运行时 / 构建产物 / 工具状态
+# =============================================================
+
+# ---- macOS 原始安装包（保留在本地，避免大文件入仓）----
+白虎阅读.dmg
+白虎阅读_extracted/
+
+# ---- 白虎阅读_asar：源代码 + node_modules 分开处理 ----
+# 源代码（含修补后的 bundle 与入口）必须入仓；runtime 依赖 node_modules 用 npm 重装
+白虎阅读_asar/node_modules/
+
+# ---- Electron 44 Linux x64 运行时（解压后的发行包内容）----
+electron-linux/electron*
+electron-linux/electron-v*.zip
+# 升级后被重命名为发布名的二进制副本
+electron-linux/白虎阅读
+# Chromium 资源（除 icon.png 之外的多分辨率图标）
+electron-linux/白虎阅读_*x*.png
+# Chromium 私有 .pak / .dat / .bin
+electron-linux/chrome_*.pak
+electron-linux/chrome-sandbox
+electron-linux/chrome_crashpad_handler
+electron-linux/icudtl.dat
+electron-linux/resources.pak
+electron-linux/snapshot_blob.bin
+electron-linux/v8_context_snapshot.bin
+# 私有 .so / vulkan ICD
+electron-linux/libffmpeg.so
+electron-linux/libvk_swiftshader.so
+electron-linux/libvulkan.so.1
+electron-linux/vk_swiftshader_icd.json
+# 默认应用 asar + 备份
+electron-linux/default_app.asar
+electron-linux/default_app.asar.bak
+# 当前打包产物（重新打 `pack-linux.sh` 会刷新）
+electron-linux/resources/app.asar
+# Electron 自带 default app，不带定制含义
+electron-linux/resources/default_app.asar
+# Chromium 多语言
+electron-linux/locales/
+# Chromium 内嵌许可（License 自带从 npm 拉）
+electron-linux/LICENSES.chromium.html
+
+# ---- 构建产物 ----
+dist/
+dist/.omc/
+dist/.build_state
+dist/previous_builds/
+# pack-pacman.sh 临时 staging 区
+build/
+
+# ---- 依赖 ----
+node_modules/
+
+# ---- OMC / 工具运行状态 ----
+.omc/
+.omc/**
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
+
+# ---- 编辑器 / shell ----
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
+.vscode/
+.idea/
