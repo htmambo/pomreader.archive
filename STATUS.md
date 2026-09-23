@@ -18,6 +18,7 @@
   - 分发只保留 pacman 包（仅 Manjaro 使用）；tar.gz 脚本保留备用
   - 兼容补丁 ④：`index.js` 加 `app.setDesktopName('pomreader')`——Electron 44 默认原生 Wayland，KDE 用窗口 app_id 匹配 .desktop 文件取图标和名称；原 app_id 是包名 `pom-reader-desktop`，匹配不到 `pomreader.desktop`，导致任务栏显示 Wayland 通用黄 W 图标、Alt-Tab 显示 "electron"
   - 兼容补丁 ⑤：`index.js` 加 `app.requestSingleInstanceLock()`——dev 版与 pacman 安装版共享 `~/.config/pom-reader-desktop`，双实例会争用 IndexedDB leveldb 锁：后启动的实例写入全部失败（症状：导入解析正常但弹窗不关闭），且并发写覆盖导致丢书（本次事故丢了《赘婿》《诛仙》）
+  - 兼容补丁 ⑥：`index.prod.html` 内联脚本接管阅读页方向键滚动——章节切换重建 `.read-screen` DOM 导致滚动容器失焦，原生 ArrowUp/Down 失效；脚本在 `#/read/` 页面对 ArrowUp/Down（±40px）和 PageUp/Down（±0.9 屏）显式 `scrollBy`，其他页面与输入框不受影响
 
 ## 已知事故与数据说明（2026-09-24）
 
@@ -26,7 +27,7 @@
 - 排查方法备忘：`WAYLAND_DEBUG=1 <启动命令> 2>&1 | grep set_app_id` 查 Wayland app_id；IndexedDB 锁冲突在 `--enable-logging` 日志里表现为 `Failed to open LevelDB database ... LOCK`
 - ✅ 系统库全套：gtk3 / nss / alsa-lib / libxss / libxtst / xdg-utils / at-spi2-core / libsecret / libnotify
 - ✅ 图标提取（icns2png → 6 档 PNG）+ `icon.png` + `白虎阅读.desktop`
-- ✅ 自定义 CSS/JS 注入：`customizations/page-flip.{css,js}`（3D 翻书动画，仅章节切换触发）
+- ~~自定义 CSS/JS 注入：page-flip 翻书动画~~ **已移除**（2026-09-24）：触发时机不符合预期（章节切换无路由变化，实际只能挂在菜单跳转上），用户决定放弃该特性；`customizations/` 目录及 `index.prod.html` 注入引用已全部删除
 - ✅ `appmenu-gtk-module` 安装（消除启动警告）
 - ✅ 路径迁移：原 `~/下载/` → `~/htdocs/pomreader/`（已 sed 更新 `.desktop` 硬编码路径）
 
@@ -89,14 +90,6 @@ sudo pacman -Rns pomreader   # 卸载
 
 ## 调试入口
 
-## 调试入口
-
-应用启动后控制台执行：
-
-```js
-window.__pomFlip()   // 手动触发一次翻书动画（无路由变化时验证动画）
-```
-
 DevTools 远程调试：
 
 ```bash
@@ -106,13 +99,13 @@ DevTools 远程调试：
 
 ## 后续改造
 
-- 重打包 asar 工作流：`cd ~/htdocs/pomreader/electron-linux && npx @electron/asar pack /tmp/pom-frontend resources/app.asar`
-- 自定义 CSS/JS 修改后重打包参考：见 `customizations/` 下文件注释
+- 重打包 asar 工作流：`白虎阅读_asar/` 为源目录，改动后：
+  `npx @electron/asar pack 白虎阅读_asar electron-linux/resources/app.asar`
 
 ## 备注
 
 - `electron-v9.1.1-linux-x64.zip`（70 MB）保留在目录中作为旧运行时回滚备份，可随时删除节省空间
-- asar 源目录 `白虎阅读_asar/` 与打包产物保持同步（含上述 3 个兼容补丁），改动后重打包：
+- asar 源目录 `白虎阅读_asar/` 与打包产物保持同步（含上述 6 个兼容补丁），改动后重打包：
   `npx @electron/asar pack 白虎阅读_asar electron-linux/resources/app.asar`
 - 原 macOS 启动脚本里的 `Cmd+Q` / `Cmd+W` 等加速键在 Linux 上由 Electron 自动降级为 `Ctrl+Q` 等
 - 启动器使用 `$(dirname "$0")` 相对路径，移动目录无需修改启动脚本

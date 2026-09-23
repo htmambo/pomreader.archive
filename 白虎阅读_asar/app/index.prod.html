@@ -9,5 +9,21 @@
 <link rel="stylesheet" href="styles.85fd6d0ea1595431a919.css"></head>
 <body>
 <app-root></app-root>
-<script>var global = globalThis;</script><script src="runtime-es2015.0dae8cbc97194c7caed4.js" type="module"></script><script src="runtime-es5.0dae8cbc97194c7caed4.js" nomodule defer></script><script src="polyfills-es5.177e85a9724683782539.js" nomodule defer></script><script src="polyfills-es2015.f332a089ad1600448873.js" type="module"></script><script src="main-es2015.e449042b0ddf3d54c6f8.js" type="module"></script><script src="main-es5.e449042b0ddf3d54c6f8.js" nomodule defer></script></body>
+<script>var global = globalThis;</script><script src="runtime-es2015.0dae8cbc97194c7caed4.js" type="module"></script><script src="runtime-es5.0dae8cbc97194c7caed4.js" nomodule defer></script><script src="polyfills-es5.177e85a9724683782539.js" nomodule defer></script><script src="polyfills-es2015.f332a089ad1600448873.js" type="module"></script><script src="main-es2015.e449042b0ddf3d54c6f8.js" type="module"></script><script src="main-es5.e449042b0ddf3d54c6f8.js" nomodule defer></script><script>
+/* 章节切换后正文 DOM 重建导致滚动容器失焦，显式接管方向键滚动 */
+window.addEventListener('keydown', function (e) {
+    if (!location.hash.startsWith('#/read/')) return;
+    if (document.activeElement !== document.body) return;
+    var scroller = document.querySelector('.read-screen');
+    if (!scroller) return;
+    var step = 0;
+    if (e.key === 'ArrowUp') step = -40;
+    else if (e.key === 'ArrowDown') step = 40;
+    else if (e.key === 'PageUp') step = -scroller.clientHeight * 0.9;
+    else if (e.key === 'PageDown') step = scroller.clientHeight * 0.9;
+    else return;
+    e.preventDefault();
+    scroller.scrollBy(0, step);
+}, true);
+</script></body>
 </html>
