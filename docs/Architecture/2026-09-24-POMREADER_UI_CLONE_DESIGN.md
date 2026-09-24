@@ -1,8 +1,9 @@
 # POMREADER_UI_CLONE 完整设计方案
 
-> **状态**：⏳ 待用户审阅（v1）
+> **状态**：✅ v1.1 — Round 1 External Review: APPROVED（已应用 5 条 suggestions）
 > **创建**：2026-09-24
 > **位置**：本仓 `docs/Architecture/`（子项目 `pomreader-ui-clone/` 在仓根下）
+> **审核记录**：§16 External Review Opinion（Round 1/5 — coding-bridge）
 
 ---
 
@@ -47,7 +48,7 @@
 | 框架 | Angular 18+ (standalone + signals) | 与原应用同栈；官方推荐形态 |
 | UI 库 | ng-zorro-antd 18+ | 原应用 UI 主库，1:1 视觉复用 |
 | 样式 | SCSS + CSS variables | CSS variables 驱动 light/dark；SCSS 用于 token 复用 |
-| 持久化 | localStorage | 主题/设置/阅读进度（< 5MB） |
+| 持久化 | localStorage | **仅**存：主题、设置（fontColor/screenBg/defaultTheme）、阅读进度（bookId + chapter index）。**不存**章节正文（避免 `QuotaExceededError`；TXT 全文仅留在内存 / Service 局部变量；mock 章节走静态 JSON + HTTP 缓存） |
 | 测试 | Vitest + @testing-library/angular | 跑得快；Angular 官方推荐 |
 | Lint | ESLint (angular-eslint) + Prettier | 默认 Angular CLI 配置 |
 | 构建 | esbuild（Angular 18 默认） | 速度 |
@@ -618,7 +619,8 @@ export const routes: Routes = [
 **验收**：所有交互动画与原 app 一致；pixelmatch diff < 2%
 
 ### 总耗时估计
-**15 小时** 集中工作（≈ 2 个工作日）
+**20-24 小时** 集中工作（≈ 3 个工作日；含视觉对齐与逆向调试的 buffer）  
+> Round 1 review 建议：从 15h 上调，预留 ng-zorro 暗色覆盖 + 逆向边界调试的余量；Phase 2 末设检查点，若视觉 diff > 5% 则提前讨论对策。
 
 ---
 
@@ -638,6 +640,30 @@ export const routes: Routes = [
 ---
 
 ## 15. 验收标准（DoD）
+
+**整体 DoD**（满足所有才能视为完成）：
+
+### 全局异常与降级
+
+- `app.config.ts` 注册自定义 `ErrorHandler`：捕获未处理异常 → `ToastService.error()` + 控制台埋点；UI 不白屏
+- `resolveSource` 返回 `error` 字段时，ImportOnlineModal 给出明确文案（"该书源暂时不可用"）而非静默失败
+- `chapter-split` 兜底已覆盖（§7.1）；导入 TXT 时即使无章节标题也能完成"全文导入"
+
+### 路由参数对齐
+
+**v1 → v1.1 修订**：路由改为 `/阅读器/:bookId/:chapterId`，与 §2 In scope 一致：
+
+```ts
+{ path: 'reader/:bookId/:chapterId', loadComponent: () => import('./pages/reader').then(m => m.ReaderComponent) }
+```
+
+`ReaderComponent` 启动时校验 `chapterId` 是数字、落在 `[0, chapterCount)`；非法 → 重定向到第一章节 + 0。
+
+### 主题作用域
+
+**v1 → v1.1 修订**：`ThemeService.applyToBody()` 重命名为 `applyToHtml()`，**改打在 `document.documentElement`（`<html>`）**，确保 nz-modal / nz-drawer / nz-notification 等默认渲染到 `body` 下的覆盖层组件能稳定继承 CSS 变量（避免暗色模式下弹窗背景闪烁）。
+
+---
 
 **整体 DoD**（满足所有才能视为完成）：
 
@@ -674,3 +700,39 @@ export const routes: Routes = [
 ---
 
 > **审阅请求**：本设计稿涵盖架构/数据/服务/算法/路由/主题/Mock/验证/测试/阶段/风险/验收 12 个维度。请逐项确认或指出需要修订之处。批准后进入 `writing-plans` 阶段输出分阶段实施计划。
+
+---
+
+## 16. External Review Opinion（Round 1/5）
+
+**Provider**: coding-bridge（默认）  
+**SESSION_ID**: `8220810e-f9d6-4470-8f01-ded286761b59`  
+**Verdict**: **APPROVED**
+
+### 4 条优点（reviewer 提取）
+1. 范围与边界极其清晰（In scope / Out of scope 划分有效防止范围蔓延）
+2. 技术选型合理且现代（Angular 18 standalone + signals + localStorage 轻量化）
+3. 验证策略完备（pixelmatch 视觉回归 + 每 phase 验收口径）
+4. 算法防御性好（章节切分兜底 + ≥ 90% 单测覆盖）
+
+### 5 条 risks（reviewer 提取 — 已全部应用）
+| # | 风险 | 缓解落地 |
+|---|---|---|
+| R1 | 路由参数定义不一致（§2 写 `:bookId/:chapterId`，§8 路由表只写 `:bookId`） | §8 路由表改为 `reader/:bookId/:chapterId`；ReaderComponent 启动校验 chapterId |
+| R2 | localStorage 容量溢出（大 TXT 触发 QuotaExceededError 无 try-catch） | §3 持久化限定为元数据 + 阅读进度；TXT 全文仅留内存 |
+| R3 | 进度评估极度乐观（15h 完成高保真不现实） | §13 总耗时上调至 20-24h + Phase 2 末检查点 |
+| R4 | Mock 失败处理与全局异常兜底缺失（5% 失败无降级 UI、无 ErrorHandler 白屏） | 新增"全局异常与降级"段 + ToastService + 自定义 ErrorHandler |
+| R5 | ng-zorro 动态组件暗色主题穿透失效（弹窗渲染在 body 下，CSS 变量不继承） | §9 `applyToBody()` → `applyToHtml()`，data-color-mode 打在 `<html>` |
+
+### 5 条 suggestions（reviewer 提取 — 已全部应用）
+1. 对齐路由参数 → R1
+2. 存储策略优化（TXT 全文不入 localStorage）→ R2
+3. 进度 Buffer 预留 → R3
+4. 全局异常与降级（ErrorHandler + Toast）→ R4
+5. 主题作用域修正（document.documentElement）→ R5
+
+### 主助手独立判断
+- 5 条 risks 中 R1 / R5 是设计稿**真 bug**（与 §2 / §3 自身矛盾），必修
+- R2 / R4 是设计完整性（兜底缺失），必修
+- R3 是估算问题，suggestion 合理
+- 没有发现 reviewer 漏看的问题
