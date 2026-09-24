@@ -2,7 +2,9 @@
 
 ## 进行中
 
-- _(无)_
+- 🔄 [pomreader-ui-clone](Active/POMREADER_UI_CLONE_PLAN.md) — Started 2026-09-24
+  - 白虎阅读（无 src 原 vendor）的 UI 仿写 + 行为级重写（Angular 18 standalone + signals + ng-zorro）
+  - 父设计稿：[2026-09-24-POMREADER_UI_CLONE_DESIGN.md v1.1](../../Architecture/2026-09-24-POMREADER_UI_CLONE_DESIGN.md) Round 1 APPROVED
 
 ## 已完成 (Archive)
 
