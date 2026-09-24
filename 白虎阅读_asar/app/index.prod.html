@@ -8,6 +8,8 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="stylesheet" href="styles.85fd6d0ea1595431a919.css"><style>
 /* 深色模式全局主题：跟随阅读页 colorMode（body[data-color-mode]） */
+/* body 画布背景：弹窗打开时 CDK 给 html 加 overflow-y:scroll，右侧/底部滚动条槽不被 fixed 遮罩覆盖，默认透出白色 */
+body[data-color-mode="dark"][data-default-theme="1"] {background:#161819 !important}
 body[data-color-mode="dark"][data-default-theme="1"] .ant-layout,
 body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content,
 body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-header {background:#161819 url("assets/themes/reader_dark_bg.png") repeat !important;color:#666666 !important}
@@ -48,6 +50,10 @@ body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-footer {border-c
 body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-close {color:#666666 !important}
 body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-content,
 body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-wrapper-body {background:#161819 !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-header {background:#161819 !important;border-color:#26292b !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-title {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-close,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-close:hover {color:#666666 !important}
 body[data-color-mode="dark"][data-default-theme="1"] .ant-input,
 body[data-color-mode="dark"][data-default-theme="1"] input[type="text"],
 body[data-color-mode="dark"][data-default-theme="1"] input[type="number"] {background:#161819 !important;border-color:#26292b !important;color:#999999 !important}
@@ -59,6 +65,28 @@ body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading,
 body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-content {color:#666666 !important}
 body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading-title {color:#999999 !important}
 body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading-sub-title {color:#666666 !important}
+/* 弹窗内标题（h1-h6 默认近黑 rgba(0,0,0,.85)）暗色适配：导入在线书页说明文字 */
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h1,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h2,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h3,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h4,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h5,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content h6 {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content .ant-typography {color:#666666 !important}
+/* 导入本地TXT弹窗上传拖放区（默认 #fafafa 纯白）暗色适配 */
+body[data-color-mode="dark"][data-default-theme="1"] .ant-upload.ant-upload-drag {background:#161819 !important;border-color:#26292b !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-upload.ant-upload-drag:hover {border-color:#3a3e42 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-upload.ant-upload-drag .ant-upload-text {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-upload.ant-upload-drag .ant-upload-hint {color:#666666 !important}
+/* 列表（导入预览章节列表 / 阅读页目录抽屉，默认 rgba(0,0,0,.65) 近黑）暗色适配 */
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list .ant-list-header,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list .ant-list-footer,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list .ant-list-item {color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list-split .ant-list-item,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list-split .ant-list-header,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list-bordered {border-color:#26292b !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-list .current-chapter-menu-item {color:#999999 !important}
 /* 阅读效果配置弹窗跟随选中方案：背景=界面背景，文字=字体颜色（示例区域保持原逻辑） */
 body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-content,
 body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-header {background:var(--pom-modal-bg) !important;color:var(--pom-modal-fg) !important}
@@ -93,28 +121,39 @@ body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-thumb:h
 body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-track,
 body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-corner {background:transparent}
 </style><script>
-/* 启动时从 _pouch_config 读取 COLOR_MODE，给 body 打标，供深色全局主题使用 */
+/* 启动时从 _pouch_config 读取 COLOR_MODE，给 body 打标，供深色全局主题使用。
+   indexedDB.open 不带版本号时，若库不存在会创建一个 v1 空库（无对象仓库），
+   这会导致 PouchDB 之后无法初始化配置库（配置读写全部失败、COLOR_MODE 丢失）。
+   因此先探测库是否存在；发现被污染的空库则删除，让 PouchDB 重建。 */
 (function () {
     try {
-        var req = indexedDB.open('_pouch_config');
-        req.onsuccess = function () {
-            var db = req.result;
-            if (!db.objectStoreNames.contains('document-store') || !db.objectStoreNames.contains('by-sequence')) return;
-            var tx = db.transaction(['document-store', 'by-sequence'], 'readonly');
-            var metaReq = tx.objectStore('document-store').get('COLOR_MODE');
-            metaReq.onsuccess = function () {
-                var winning = null;
-                try { winning = metaReq.result && JSON.parse(metaReq.result.data).winningRev; } catch (e) {}
-                var allReq = tx.objectStore('by-sequence').getAll();
-                allReq.onsuccess = function () {
-                    var rows = allReq.result.filter(function (r) {
-                        return r._doc_id_rev && r._doc_id_rev.indexOf('COLOR_MODE::') === 0;
-                    });
-                    var doc = rows.filter(function (r) { return r._doc_id_rev.split('::')[1] === winning; })[0] || rows[rows.length - 1];
-                    if (doc && doc.value) document.body.setAttribute('data-color-mode', doc.value);
+        if (!indexedDB.databases) return;
+        indexedDB.databases().then(function (dbs) {
+            if (!dbs.some(function (d) { return d.name === '_pouch_config'; })) return;
+            var req = indexedDB.open('_pouch_config');
+            req.onsuccess = function () {
+                var db = req.result;
+                if (!db.objectStoreNames.contains('document-store') || !db.objectStoreNames.contains('by-sequence')) {
+                    db.close();
+                    indexedDB.deleteDatabase('_pouch_config');
+                    return;
+                }
+                var tx = db.transaction(['document-store', 'by-sequence'], 'readonly');
+                var metaReq = tx.objectStore('document-store').get('COLOR_MODE');
+                metaReq.onsuccess = function () {
+                    var winning = null;
+                    try { winning = metaReq.result && JSON.parse(metaReq.result.data).winningRev; } catch (e) {}
+                    var allReq = tx.objectStore('by-sequence').getAll();
+                    allReq.onsuccess = function () {
+                        var rows = allReq.result.filter(function (r) {
+                            return r._doc_id_rev && r._doc_id_rev.indexOf('COLOR_MODE::') === 0;
+                        });
+                        var doc = rows.filter(function (r) { return r._doc_id_rev.split('::')[1] === winning; })[0] || rows[rows.length - 1];
+                        if (doc && doc.value) document.body.setAttribute('data-color-mode', doc.value);
+                    };
                 };
             };
-        };
+        });
     } catch (e) {}
 })();
 </script></head>
