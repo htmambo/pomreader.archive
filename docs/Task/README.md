@@ -39,3 +39,4 @@
   - 新增 `ensure_icons()`,从 `electron-linux/icon.png` (1024×1024 RGBA) 用 ImageMagick `magick` 缩放生成 6 档 PNG
   - 修复打包安装后 dock / 应用列表 / 窗口切换器都没图标的 bug(根因:多档图标不入仓,PKGBUILD 静默跳过)
   - tarball 验证含全部 6 档 PNG;幂等性 ✓
+- ✅ [万能搜索+导入在线真实功能引入(Electron)](Archive/2026-09/ONLINE_SEARCH_IMPORT_PLAN.md) — Completed 2026-09-24
