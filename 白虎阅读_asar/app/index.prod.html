@@ -6,7 +6,118 @@
     <base href="./">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-<link rel="stylesheet" href="styles.85fd6d0ea1595431a919.css"></head>
+<link rel="stylesheet" href="styles.85fd6d0ea1595431a919.css"><style>
+/* 深色模式全局主题：跟随阅读页 colorMode（body[data-color-mode]） */
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-header {background:#161819 url("assets/themes/reader_dark_bg.png") repeat !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-sider,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-sider-dark,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-sub {background:#0e0f11 url("assets/themes/body_dark_bg.png") repeat !important}
+body[data-color-mode="dark"][data-default-theme="1"] .read-screen {background:#0e0f11 url("assets/themes/body_dark_bg.png") repeat !important}
+body[data-color-mode="dark"][data-default-theme="1"] .read-region {background:#161819 url("assets/themes/reader_dark_bg.png") repeat !important}
+body[data-color-mode="light"][data-default-theme="1"] .read-screen {background:#e2d1a5 url("assets/themes/body_light_bg.png") repeat !important}
+body[data-color-mode="light"][data-default-theme="1"] .read-region {background:#f4eac7 url("assets/themes/reader_light_bg.png") repeat !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-card .ant-typography,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content h1,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content h2,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content h3,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-layout-content .ant-typography {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item > a {color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item:hover > a,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item-selected,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item-selected > a {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-menu-dark .ant-menu-item-selected {background:#26292b !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-card,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-card-bordered {background:#1b1d1e !important;border-color:#26292b !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-card:hover {border-color:#3a3e42 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-btn:not(.ant-btn-link):not(.ant-btn-text) {background:#1b1d1e !important;border-color:#26292b !important;color:#666666 !important;text-shadow:none !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-btn:not(.ant-btn-link):not(.ant-btn-text):hover {color:#999999 !important;border-color:#3a3e42 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-btn-link,
+body[data-color-mode="dark"][data-default-theme="1"] .button-list .ant-btn,
+body[data-color-mode="dark"][data-default-theme="1"] .button-list .anticon {color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-btn-link:hover,
+body[data-color-mode="dark"][data-default-theme="1"] .button-list .ant-btn:hover .anticon {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-content,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-header {background:#1b1d1e !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-title {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-header,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-footer {border-color:#26292b !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-modal-close {color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-content,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-drawer-wrapper-body {background:#161819 !important;color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-input,
+body[data-color-mode="dark"][data-default-theme="1"] input[type="text"],
+body[data-color-mode="dark"][data-default-theme="1"] input[type="number"] {background:#161819 !important;border-color:#26292b !important;color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-divider {border-color:#26292b !important}
+body[data-color-mode="dark"][data-default-theme="1"] .current-chapter-menu-item {color:#999999 !important}
+/* 页头（书架/万能搜索/免责声明）暗色适配 */
+body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading,
+body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-content {color:#666666 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading-title {color:#999999 !important}
+body[data-color-mode="dark"][data-default-theme="1"] .ant-page-header-heading-sub-title {color:#666666 !important}
+/* 阅读效果配置弹窗跟随选中方案：背景=界面背景，文字=字体颜色（示例区域保持原逻辑） */
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-content,
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-header {background:var(--pom-modal-bg) !important;color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-title {color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-header,
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-footer {border-color:color-mix(in srgb, var(--pom-modal-fg) 20%, transparent) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-modal-close {color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-input,
+body[data-default-theme] .ant-modal[data-pom-scheme] input[type="text"],
+body[data-default-theme] .ant-modal[data-pom-scheme] input[type="number"] {background:color-mix(in srgb, var(--pom-modal-fg) 8%, var(--pom-modal-bg)) !important;border-color:color-mix(in srgb, var(--pom-modal-fg) 25%, transparent) !important;color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-divider {border-color:color-mix(in srgb, var(--pom-modal-fg) 20%, transparent) !important;color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-btn:not(.ant-btn-link):not(.ant-btn-text) {background:color-mix(in srgb, var(--pom-modal-fg) 8%, var(--pom-modal-bg)) !important;border-color:color-mix(in srgb, var(--pom-modal-fg) 25%, transparent) !important;color:var(--pom-modal-fg) !important;text-shadow:none !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-radio-button-wrapper {background:color-mix(in srgb, var(--pom-modal-fg) 8%, var(--pom-modal-bg)) !important;border-color:color-mix(in srgb, var(--pom-modal-fg) 25%, transparent) !important;color:var(--pom-modal-fg) !important}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-radio-button-wrapper-checked {background:var(--pom-modal-fg) !important;color:var(--pom-modal-bg) !important;border-color:var(--pom-modal-fg) !important;box-shadow:-1px 0 0 0 var(--pom-modal-fg) !important;font-weight:600}
+body[data-default-theme] .ant-modal[data-pom-scheme] .ant-radio-button-wrapper-checked::before {background-color:var(--pom-modal-fg) !important}
+/* 滚动条：跟随白天/夜晚配色，仅在内容溢出时展示 */
+body[data-default-theme] .read-screen {overflow-y:auto !important}
+body[data-default-theme] div[style*="overflow: scroll"] {overflow:auto !important}
+body[data-color-mode="dark"][data-default-theme="1"] ::-webkit-scrollbar {width:8px;height:8px}
+body[data-color-mode="dark"][data-default-theme="1"] ::-webkit-scrollbar-thumb {background:#2e3236;border-radius:4px}
+body[data-color-mode="dark"][data-default-theme="1"] ::-webkit-scrollbar-thumb:hover {background:#3a3e42}
+body[data-color-mode="dark"][data-default-theme="1"] ::-webkit-scrollbar-track,
+body[data-color-mode="dark"][data-default-theme="1"] ::-webkit-scrollbar-corner {background:transparent}
+body[data-color-mode="light"][data-default-theme="1"] ::-webkit-scrollbar {width:8px;height:8px}
+body[data-color-mode="light"][data-default-theme="1"] ::-webkit-scrollbar-thumb {background:#c9b98f;border-radius:4px}
+body[data-color-mode="light"][data-default-theme="1"] ::-webkit-scrollbar-thumb:hover {background:#b3a276}
+body[data-color-mode="light"][data-default-theme="1"] ::-webkit-scrollbar-track,
+body[data-color-mode="light"][data-default-theme="1"] ::-webkit-scrollbar-corner {background:transparent}
+body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar {width:8px;height:8px}
+body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-thumb {background:color-mix(in srgb, var(--pom-modal-fg) 25%, transparent);border-radius:4px}
+body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-thumb:hover {background:color-mix(in srgb, var(--pom-modal-fg) 40%, transparent)}
+body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-track,
+body[data-default-theme] .ant-modal[data-pom-scheme] ::-webkit-scrollbar-corner {background:transparent}
+</style><script>
+/* 启动时从 _pouch_config 读取 COLOR_MODE，给 body 打标，供深色全局主题使用 */
+(function () {
+    try {
+        var req = indexedDB.open('_pouch_config');
+        req.onsuccess = function () {
+            var db = req.result;
+            if (!db.objectStoreNames.contains('document-store') || !db.objectStoreNames.contains('by-sequence')) return;
+            var tx = db.transaction(['document-store', 'by-sequence'], 'readonly');
+            var metaReq = tx.objectStore('document-store').get('COLOR_MODE');
+            metaReq.onsuccess = function () {
+                var winning = null;
+                try { winning = metaReq.result && JSON.parse(metaReq.result.data).winningRev; } catch (e) {}
+                var allReq = tx.objectStore('by-sequence').getAll();
+                allReq.onsuccess = function () {
+                    var rows = allReq.result.filter(function (r) {
+                        return r._doc_id_rev && r._doc_id_rev.indexOf('COLOR_MODE::') === 0;
+                    });
+                    var doc = rows.filter(function (r) { return r._doc_id_rev.split('::')[1] === winning; })[0] || rows[rows.length - 1];
+                    if (doc && doc.value) document.body.setAttribute('data-color-mode', doc.value);
+                };
+            };
+        };
+    } catch (e) {}
+})();
+</script></head>
 <body>
 <app-root></app-root>
 <script>var global = globalThis;</script><script src="runtime-es2015.0dae8cbc97194c7caed4.js" type="module"></script><script src="runtime-es5.0dae8cbc97194c7caed4.js" nomodule defer></script><script src="polyfills-es5.177e85a9724683782539.js" nomodule defer></script><script src="polyfills-es2015.f332a089ad1600448873.js" type="module"></script><script src="main-es2015.e449042b0ddf3d54c6f8.js" type="module"></script><script src="main-es5.e449042b0ddf3d54c6f8.js" nomodule defer></script><script>
@@ -25,5 +136,74 @@ window.addEventListener('keydown', function (e) {
     e.preventDefault();
     scroller.scrollBy(0, step);
 }, true);
+</script><script>
+/* 「使用默认配置」开关：默认开启；关闭后注入主题整体失效，回退到设置里配置的颜色 */
+(function () {
+    var KEY = 'pomUseDefaultTheme';
+    function apply() {
+        var v = '1';
+        try { v = localStorage.getItem(KEY) === '0' ? '0' : '1'; } catch (e) {}
+        document.body.setAttribute('data-default-theme', v);
+    }
+    apply();
+    function inject() {
+        var modal = Array.from(document.querySelectorAll('.ant-modal')).filter(function (e) { return e.offsetParent; })[0];
+        if (!modal || modal.querySelector('#pom-default-theme-row')) return;
+        if ((modal.textContent || '').indexOf('阅读效果配置') === -1) return;
+        var space = modal.querySelector('.ant-modal-body nz-space');
+        if (!space) return;
+        var row = document.createElement('div');
+        row.className = 'ant-space-item';
+        row.id = 'pom-default-theme-row';
+        var label = document.createElement('label');
+        label.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = document.body.getAttribute('data-default-theme') !== '0';
+        cb.addEventListener('change', function () {
+            try { localStorage.setItem(KEY, cb.checked ? '1' : '0'); } catch (e) {}
+            apply();
+        });
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode('使用默认配置'));
+        row.appendChild(label);
+        var first = space.querySelector('nz-divider');
+        if (first && first.nextSibling) space.insertBefore(row, first.nextSibling);
+        else space.insertBefore(row, space.firstChild);
+    }
+    /* 弹窗跟随「白天/夜晚」选中方案：实时读取该方案的 字体颜色/界面背景，写到弹窗 CSS 变量上 */
+    function syncScheme() {
+        var modal = Array.from(document.querySelectorAll('.ant-modal')).filter(function (e) { return e.offsetParent; })[0];
+        if (!modal || (modal.textContent || '').indexOf('阅读效果配置') === -1) return;
+        var checked = modal.querySelector('.ant-radio-button-wrapper-checked');
+        if (!checked) return;
+        var want = checked.textContent.indexOf('夜晚') !== -1 ? 'dark' : 'light';
+        var kids = Array.from(modal.querySelectorAll('.ant-modal-body nz-space > *'));
+        var section = '', font = null, screen = null;
+        for (var i = 0; i < kids.length; i++) {
+            var el = kids[i];
+            var t = (el.textContent || '').replace(/\s/g, '');
+            if (el.tagName === 'NZ-DIVIDER') {
+                if (t.indexOf('白天颜色') !== -1) section = 'light';
+                else if (t.indexOf('夜晚颜色') !== -1) section = 'dark';
+                else section = '';
+                continue;
+            }
+            if (section !== want) continue;
+            var inp = el.querySelector('input');
+            if (!inp) continue;
+            if (t.indexOf('字体颜色') !== -1) font = inp.value;
+            else if (t.indexOf('界面背景') !== -1) screen = inp.value;
+        }
+        if (!/^#[0-9a-fA-F]{3,8}$/.test(font || '')) font = want === 'dark' ? '#666666' : '#262626';
+        if (!/^#[0-9a-fA-F]{3,8}$/.test(screen || '')) screen = want === 'dark' ? '#161819' : '#CDC0A4';
+        modal.setAttribute('data-pom-scheme', want);
+        modal.style.setProperty('--pom-modal-bg', screen);
+        modal.style.setProperty('--pom-modal-fg', font);
+    }
+    function onMutate() { inject(); syncScheme(); }
+    new MutationObserver(onMutate).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    document.addEventListener('input', syncScheme, true);
+})();
 </script></body>
 </html>
