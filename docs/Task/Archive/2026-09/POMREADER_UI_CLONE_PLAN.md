@@ -1,6 +1,33 @@
-**状态**: 🔄 进行中 (开始时间: 2026-09-24)
-> 对应 fullauto 状态：`.omc/fullauto/pomreader-ui-clone/state.json`
+**状态**: ✅ 已完成 (完成时间: 2026-09-24)
 > 父设计稿（v1.1 Round 1 APPROVED）：`docs/Architecture/2026-09-24-POMREADER_UI_CLONE_DESIGN.md`
+> fullauto 归档：`.omc/fullauto/pomreader-ui-clone/{spec.md, validation.md}` 保留作审计
+> 最终 commit: c784f31（fix HIGH findings）
+
+## 验收结论
+
+- [x] 4 路由全部独立可访问（lazy load）
+- [x] 主题切换：light/dark + 弹窗跟随方案 + 字体色/背景可配（v1.1 §9 + §15.1/§15.2 修订落地）
+- [x] 15+ 本 mock 书（15 本古典名篇）
+- [x] 阅读器 + 抽屉 + 设置弹窗（reader.component 内联）
+- [x] TXT 切分单测：chapter-split 19/19 + theme-resolver 8/8 + online-source-resolver 3/3 = 30/30 全绿
+- [x] 章节切分覆盖率：100% lines / 95.45% branch / 100% funcs / 100% stmts（远超 90% 门槛）
+- [x] bundle < 1.5MB：prod 611kB / 160kB transferred（远低于预算）
+- [x] ng serve dev server 启动成功（http://localhost:4200/）+ assets 可达
+- [x] 3 reviewer 全 APPROVED（architect Round 1 / security Round 1 / code-reviewer Round 2）
+- [ ] CDP 视觉对比原 app（未做，依赖原 app 配合）
+- [ ] P5 动效精修（路由切换/抽屉过渡/hover 状态；per D11 推迟）
+- [ ] service-level 单测（per code-reviewer R2，非阻塞）
+- [ ] 13 本 mock 书的完整章节内容（仅 stub 首章）
+
+## 残余风险（MEDIUM/LOW，详见 validation.md）
+
+- async ngOnInit 错误吞咽
+- 组件缺 ChangeDetectionStrategy.OnPush
+- online-source-resolver 用 Math.random() 不可测试
+- console.log in production（book.service.ts:36）
+- TXT 导入无大小上限（自伤 DoS）
+- Modal close stub
+- Build 路径含 /browser/ 子目录
 
 ## 任务目标
 独立子项目 `pomreader-ui-clone/` 实现白虎阅读（无 src 原 vendor）的纯 UI 仿写 + 行为级重写核心逻辑；Angular 18 standalone + signals + ng-zorro-antd 18，4 主路由 + 4 弹窗 + 1 抽屉 + 动效，与原 app 视觉/交互高度一致。
@@ -77,3 +104,16 @@
 - provider: coding-bridge（Round 1 SESSION 复用，per D3 类推）
 - verdict: APPROVED（沿用 Round 1；plan 与 spec/v1.1 一致性由 main 助手自查：依赖图闭合、复杂度/估时/验收口径与 spec §8 对齐）
 - 风险点 / diff：见 v1.1 §16
+
+## 阶段 2 输出（执行）
+- commit: 23fe089
+- 范围：62 文件 / +18649 行
+- 包含：脚手架 + 设计 token + ng-zorro + 6 service + 3 logic + 4 page + 2 modal + 3 shared + 15 books mock + 30 单测 + README
+- 跳过：P5 动效精修（per D11）；ng lint（per D12）
+
+## QA 记录（Phase 3）
+- ng build (dev): PASS（2.47MB initial / 6 lazy chunks）
+- ng build (prod): PASS（611kB initial / 160kB transferred；远低于 1.5MB 预算）
+- vitest: 30/30 PASS（chapter-split 19 + theme-resolver 8 + online-source-resolver 3）
+- tsc --noEmit: PASS（0 errors）
+- ng lint: SKIP（Angular 18 默认未配 lint script；TSC 严格检查替代）
