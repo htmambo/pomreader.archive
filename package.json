@@ -10,5 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "universal-analytics": "^0.4.20"
+  },
+  "devDependencies": {
+    "@electron/asar": "^3.2.10"
   }
 }

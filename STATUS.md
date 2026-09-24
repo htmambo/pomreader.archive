@@ -108,6 +108,9 @@ DevTools 远程调试：
 
 - 重打包 asar 工作流：`白虎阅读_asar/` 为源目录，改动后：
   `npx @electron/asar pack 白虎阅读_asar electron-linux/resources/app.asar`
+- ✅ **`pack-*` 脚本自举（2026-09-24）**：`npm install` 与 `app.asar` 构建已内嵌到两个脚本启动期；裸仓库首次运行会自动安装 `@electron/asar` 并从 `白虎阅读_asar/` 重建 `electron-linux/resources/app.asar`，之后幂等跳过。`pack-pacman.sh` 内的 `npx --yes @electron/asar ... 2>/dev/null` 已替换为本地 `node_modules/.bin/asar` + 显式错误处理（不再吞错）。
+- ✅ **Electron 运行时自动下载（2026-09-24）**：新增 `ensure_electron_binary()`，缺 `electron-linux/electron` 时调用 `npm install electron@<ver>` + `node install.js` 触发懒下载（electron@44.4.5+ 移除了 postinstall）。默认版本 44.4.5，`--electron-version` / `ELECTRON_VERSION` 双通道覆盖。镜像可通过 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/` 切换。
+- ✅ **多档应用图标自动生成（2026-09-24）**：新增 `ensure_icons()`，从 `icon.png` (1024×1024 RGBA) 用 ImageMagick `magick` 缩放生成 16/32/128/256/512/1024 六档 PNG（PKGBUILD 安装到 `/usr/share/icons/hicolor/<size>x<size>/apps/pomreader.png`）。修复打包安装后 dock / 应用列表 / Alt-Tab 都没图标的 bug——根因是多档图标不入仓、PKGBUILD `if [ -f ] then install; else 跳过` 走跳过分支。
 
 ## 备注
 

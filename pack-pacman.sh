@@ -20,6 +20,7 @@
 #   ./pack-pacman.sh --keep-build     # 构建后保留 build/ 目录(默认清理)
 #   ./pack-pacman.sh --sign           # 生成 GPG 签名 .sig(需配置 GPG)
 #   ./pack-pacman.sh --install-deps   # 同步安装运行时依赖(checkdeps)
+#   ./pack-pacman.sh --electron-version 44.4.5  # 指定 Electron 运行时版本
 #   ./pack-pacman.sh --help
 
 set -euo pipefail
@@ -29,12 +30,14 @@ APP_NAME="白虎阅读"
 PKG_NAME="pomreader"
 INSTALL_PATH="/opt/${PKG_NAME}"
 DEFAULT_VERSION="1.0.6"
+DEFAULT_ELECTRON_VERSION="44.4.5"
 ARCH="x86_64"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/electron-linux"
 DIST_DIR="$SCRIPT_DIR/dist"
 BUILDDIR="$SCRIPT_DIR/build"
 STATE_FILE="$DIST_DIR/.build_state"
+ELECTRON_VERSION="${ELECTRON_VERSION:-$DEFAULT_ELECTRON_VERSION}"
 
 # ===== 帮助 =====
 usage() {
@@ -46,6 +49,135 @@ log()  { printf '\033[1;34m[pack]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[pack]\033[0m %s\n' "$*" >&2; }
 err()  { printf '\033[1;31m[pack]\033[0m %s\n' "$*" >&2; }
 
+# ===== 自举:依赖安装与 app.asar 构建 =====
+# 仓库只入白虎阅读_asar/ 源码与 electron-linux/ 的壳文件,electron 二进制与
+# resources/app.asar 由本脚本在运行期生成。这里保证 @electron/asar 与 app.asar
+# 就绪后再做前置检查。
+ensure_node_deps() {
+    if [ ! -x "$SCRIPT_DIR/node_modules/.bin/asar" ]; then
+        log "安装构建依赖 (@electron/asar)..."
+        (cd "$SCRIPT_DIR" && npm install --no-audit --no-fund --no-save) \
+            || { err "npm install 失败,请检查网络或手动执行: cd $SCRIPT_DIR && npm install"; return 1; }
+    fi
+}
+
+ensure_app_asar() {
+    if [ ! -f "$SOURCE_DIR/resources/app.asar" ]; then
+        if [ ! -d "$SCRIPT_DIR/白虎阅读_asar" ]; then
+            err "缺少 app.asar 且无源目录 白虎阅读_asar/,无法重建"
+            return 1
+        fi
+        log "构建 app.asar ← 白虎阅读_asar/"
+        mkdir -p "$SOURCE_DIR/resources"
+        (cd "$SCRIPT_DIR" && "$SCRIPT_DIR/node_modules/.bin/asar" pack \
+            "白虎阅读_asar" "$SOURCE_DIR/resources/app.asar") \
+            || { err "asar pack 失败"; return 1; }
+    fi
+}
+
+ensure_icons() {
+    # PKGBUILD 期望 ${APP_NAME}_${size}x${size}x32.png(16/32/128/256/512/1024),
+    # 这些文件不入仓(.gitignore 已排除),需要从 icon.png 缩放生成。
+    local icon_source="$SOURCE_DIR/icon.png"
+    local magick_cmd=""
+
+    if [ ! -f "$icon_source" ]; then
+        err "缺少源图标: $icon_source"
+        return 1
+    fi
+
+    local missing=()
+    local size
+    for size in 16 32 128 256 512 1024; do
+        if [ ! -f "$SOURCE_DIR/${APP_NAME}_${size}x${size}x32.png" ]; then
+            missing+=("$size")
+        fi
+    done
+
+    if [ "${#missing[@]}" -eq 0 ]; then
+        return 0
+    fi
+
+    if command -v magick >/dev/null 2>&1; then
+        magick_cmd="magick"
+    elif command -v convert >/dev/null 2>&1; then
+        magick_cmd="convert"
+    else
+        err "需要 ImageMagick (magick 或 convert) 生成缺失图标: ${missing[*]}"
+        err "  安装: sudo pacman -S imagemagick"
+        err "  或手动放置图标到: $SOURCE_DIR/${APP_NAME}_\${size}x\${size}x32.png"
+        return 1
+    fi
+
+    log "从 icon.png 生成图标: ${missing[*]}"
+    for size in "${missing[@]}"; do
+        local out="$SOURCE_DIR/${APP_NAME}_${size}x${size}x32.png"
+        # -define png:color-type=6 强制 8-bit RGBA,避免小图被 magick 自动 quantize 成 8-bit 调色板
+        # 调色板模式在某些 KDE 版本下渲染异常(透明度丢失或不显示)
+        "$magick_cmd" "$icon_source" -resize "${size}x${size}" \
+            -define png:color-type=6 PNG32:"$out" \
+            || { err "生成图标失败 ($size): $out"; return 1; }
+    done
+    log "图标生成完成"
+}
+
+ensure_electron_binary() {
+    if [ ! -x "$SOURCE_DIR/electron" ]; then
+        log "下载 Electron ${ELECTRON_VERSION} ${ARCH}..."
+        log "  (首次约 70MB,后续跳过;镜像: ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/)"
+
+        local tmpdir
+        tmpdir="$(mktemp -d)"
+
+        # 临时目录装 electron 包(只装 JS 壳,二进制靠下一步 install-electron 触发下载)
+        if ! (cd "$tmpdir" && npm install "electron@${ELECTRON_VERSION}" \
+                --no-audit --no-fund --no-save); then
+            rm -rf "$tmpdir"
+            err "Electron npm 包安装失败,请检查网络"
+            err "  镜像: ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/"
+            err "  或手动放置 electron 二进制到 $SOURCE_DIR/electron"
+            return 1
+        fi
+
+        # electron@44.4.5+ 改为懒下载:install.js 是 bin 'install-electron'。
+        # npm install 不再触发 postinstall,需主动调用。
+        if ! (cd "$tmpdir/node_modules/electron" && node install.js); then
+            rm -rf "$tmpdir"
+            err "Electron 二进制下载失败(已在 npm 包安装后调用 install.js)"
+            err "  镜像: ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/"
+            return 1
+        fi
+
+        local electron_dist="$tmpdir/node_modules/electron/dist"
+        if [ ! -d "$electron_dist" ]; then
+            rm -rf "$tmpdir"
+            err "未找到 electron dist 目录: $electron_dist"
+            return 1
+        fi
+
+        # dist 内容与 electron-linux/ 中文自定义文件名无冲突;cp -a 不删目标已有文件
+        # 故 app.asar (ensure_app_asar 已构建) 与中文壳文件保持原样
+        if ! cp -a "$electron_dist/." "$SOURCE_DIR/"; then
+            rm -rf "$tmpdir"
+            err "复制 Electron 运行时失败"
+            return 1
+        fi
+
+        rm -rf "$tmpdir"
+        [ -x "$SOURCE_DIR/electron" ] || chmod +x "$SOURCE_DIR/electron"
+        log "Electron ${ELECTRON_VERSION} ${ARCH} 已就绪"
+    fi
+}
+
+hint_electron_missing() {
+    err "缺少 electron 二进制: $SOURCE_DIR/electron"
+    err "修复步骤:"
+    err "  1. 从 https://www.electronjs.org/releases 下载 electron-linux-x64.zip"
+    err "  2. 解压到 $SOURCE_DIR/:"
+    err "       cd $SOURCE_DIR && unzip -o electron-v\${VERSION}-linux-x64.zip"
+    err "  3. 确认 $SOURCE_DIR/electron 存在且可执行 (chmod +x)"
+}
+
 # ===== 参数解析 =====
 VERSION=""
 VERSION_EXPLICIT=0
@@ -56,15 +188,17 @@ SIGN_PKG=0
 INSTALL_DEPS=0
 while [ $# -gt 0 ]; do
     case "$1" in
-        --help|-h)        usage ;;
-        --force|-f)       FORCE=1 ;;
-        --pkgrel)         PKGREL="${2:-1}"; shift ;;
-        --pkgrel=*)       PKGREL="${1#*=}" ;;
-        --keep-build)     KEEP_BUILD=1 ;;
-        --sign)           SIGN_PKG=1 ;;
-        --install-deps)   INSTALL_DEPS=1 ;;
-        --*)              err "未知参数: $1"; exit 2 ;;
-        *)                VERSION="$1"; VERSION_EXPLICIT=1 ;;
+        --help|-h)                usage ;;
+        --force|-f)               FORCE=1 ;;
+        --pkgrel)                 PKGREL="${2:-1}"; shift ;;
+        --pkgrel=*)               PKGREL="${1#*=}" ;;
+        --keep-build)             KEEP_BUILD=1 ;;
+        --sign)                   SIGN_PKG=1 ;;
+        --install-deps)           INSTALL_DEPS=1 ;;
+        --electron-version)       ELECTRON_VERSION="${2:-$DEFAULT_ELECTRON_VERSION}"; shift ;;
+        --electron-version=*)     ELECTRON_VERSION="${1#*=}" ;;
+        --*)                      err "未知参数: $1"; exit 2 ;;
+        *)                        VERSION="$1"; VERSION_EXPLICIT=1 ;;
     esac
     shift
 done
@@ -73,12 +207,23 @@ done
 command -v makepkg >/dev/null || { err "缺少 makepkg,请安装 pacman 包管理器"; exit 1; }
 command -v bsdtar  >/dev/null || { err "缺少 bsdtar,请安装 libarchive"; exit 1; }
 [ -d "$SOURCE_DIR" ]         || { err "源目录不存在: $SOURCE_DIR"; exit 1; }
-[ -f "$SOURCE_DIR/electron" ] && [ -x "$SOURCE_DIR/electron" ] \
-    || { err "electron 二进制缺失或不可执行: $SOURCE_DIR/electron"; exit 1; }
-[ -f "$SOURCE_DIR/${APP_NAME}.sh" ]    || { err "缺少启动脚本: ${APP_NAME}.sh"; exit 1; }
-[ -f "$SOURCE_DIR/${APP_NAME}.desktop" ] || { err "缺少 desktop 文件: ${APP_NAME}.desktop"; exit 1; }
+
+# 自举:缺构建依赖就 npm install,缺 app.asar 就从白虎阅读_asar/ 重建,
+# 缺图标就从 icon.png 缩放生成,缺 electron 运行时二进制就 npm install 自动下载
+ensure_node_deps || exit 1
+ensure_app_asar || exit 1
+ensure_icons || exit 1
+ensure_electron_binary || exit 1
 
 mkdir -p "$DIST_DIR"
+
+if [ ! -f "$SOURCE_DIR/electron" ]; then
+    hint_electron_missing
+    exit 1
+fi
+[ -x "$SOURCE_DIR/electron" ] || { err "electron 不可执行: chmod +x $SOURCE_DIR/electron"; exit 1; }
+[ -f "$SOURCE_DIR/${APP_NAME}.sh" ]    || { err "缺少启动脚本: ${APP_NAME}.sh"; exit 1; }
+[ -f "$SOURCE_DIR/${APP_NAME}.desktop" ] || { err "缺少 desktop 文件: ${APP_NAME}.desktop"; exit 1; }
 
 # ===== 版本号解析 =====
 get_version() {
@@ -156,7 +301,10 @@ if [ -f "$STAGE/resources/app.asar" ]; then
     ASAR_TMP="$BUILDDIR/asar-tmp"
     rm -rf "$ASAR_TMP"
     mkdir -p "$ASAR_TMP"
-    npx --yes @electron/asar extract "$STAGE/resources/app.asar" "$ASAR_TMP" 2>/dev/null
+    # 使用 ensure_node_deps 已安装的本地 @electron/asar,避免 npx 临时下载与错误吞没
+    ASAR="$SCRIPT_DIR/node_modules/.bin/asar"
+    "$ASAR" extract "$STAGE/resources/app.asar" "$ASAR_TMP" \
+        || { err "asar extract 失败"; exit 1; }
 
     UA_DIR="$ASAR_TMP/node_modules/universal-analytics"
     if [ -d "$UA_DIR" ]; then
@@ -177,7 +325,8 @@ module.exports.timing = noop;
 STUB
     fi
 
-    npx --yes @electron/asar pack "$ASAR_TMP" "$STAGE/resources/app.asar" 2>/dev/null
+    "$ASAR" pack "$ASAR_TMP" "$STAGE/resources/app.asar" \
+        || { err "asar pack 失败"; exit 1; }
     rm -rf "$ASAR_TMP"
 fi
 
