@@ -37,6 +37,14 @@ update-desktop-database ~/.local/share/applications/
 
 两个脚本均按源指纹判定幂等；`--force` 强制重建，`--keep N` 调整历史归档保留数。
 
+---
+
+## 归档说明
+
+`pomreader-ui-clone/`（Angular 18 独立重写版）已于 2026-09-25 拆分为独立仓库 **白虎阅读**（GitHub: `htmambo/baihu-reader`）。
+
+本仓 `pomreader-ui-clone/` 内容**保留为归档**（git 历史完整），但不再主动维护；后续开发请前往独立仓库。父仓仅承担白虎阅读 macOS DMG Linux 重打包职责。
+
 ## 兼容性补丁（已合入 asar）
 
 | # | 部位 | 用途 |
